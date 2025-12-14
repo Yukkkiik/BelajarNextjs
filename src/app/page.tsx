@@ -1,6 +1,8 @@
 "use client";
 import {useQuery} from '@tanstack/react-query';
 import Image from 'next/image';
+import { useEffect,useState } from 'react';
+import {Loading} from '@/app/components/loading';
 
 interface product  {
   id: number;
@@ -12,26 +14,36 @@ interface product  {
 }
 
 export default function Home() {
-  const {data, isLoading, isError} = useQuery({
+  const [showToast,setShowToast] =  useState(false);
+  const {data, isLoading, isError,isSuccess} = useQuery({
     queryKey: ['products'],
     queryFn: async () => {
       const res = await fetch("https://fakestoreapi.com/products",{
-        cache: 'no-store'
-      });
-      if (!res.ok) throw new Error('Failed to fetch data products');
+        cache: 'no-store',
+      })
       return res.json();
     },
+    enabled: true
   });
+
+  useEffect(()=>{
+    if(isSuccess) {
+      setShowToast(true);
+      setTimeout(() => {
+        setShowToast(false);
+      }, 3000);
+    }
+  },[isSuccess]); 
 
   return (
     <div className="min-h-screen bg-gradient-to-br from-indigo-50 via-white to-purple-50"> 
-     {isLoading ? (
-      <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-indigo-50 via-white to-purple-50">
-        <div className="text-center">
-          <div className="w-16 h-16 border-4 border-indigo-600 border-t-transparent rounded-full animate-spin mx-auto mb-4"></div>
-          <p className="text-gray-600 font-medium">Loading products...</p>
-        </div>
+    {showToast && (
+      <div className="fixed top-5 right-5 bg-green-500 text-white px-6 py-3 rounded-lg shadow-lg animate-slide-in">
+        Products loaded successfully!
       </div>
+    )}
+     {isLoading ? (
+      <Loading message="Fetching Products..." />
      ):(
     <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-red-50 to-white">
         {isError ? (
